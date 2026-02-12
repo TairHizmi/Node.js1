@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pruducts - מוצרים</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1>🛍️ רשימת מוצרים</h1>
+    <div class="controls">
+      <button class="btn" onclick="location.href='/'">חזור להרשמה</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none">לא נמצאו מוצרים.</div>
+  </main>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+
+    async function loadProducts(){
+      try{
+        const res = await fetch('/pruducts');
+        if (!res.ok) throw new Error('שגיאה בטעינת המוצרים');
+        const items = await res.json();
+
+        if (!Array.isArray(items) || items.length === 0){
+          empty.style.display = 'block';
+          grid.innerHTML = '';
+          return;
+        }
+
+        empty.style.display = 'none';
+        grid.innerHTML = items.map(p => `
+          <div class="card">
+            <div class="title">${escapeHtml(p.name)}</div>
+            <div class="price">₪ ${Number(p.price).toFixed(2)}</div>
+            <div class="id">ID: ${p.id}</div>
+          </div>
+        `).join('');
+
+      }catch(e){
+        empty.style.display = 'block';
+        empty.textContent = 'שגיאה בטעינת המוצרים: ' + (e.message || e);
+      }
+    }
+
+    function escapeHtml(str){
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
